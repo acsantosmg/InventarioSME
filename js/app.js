@@ -51,7 +51,25 @@ const app = {
         }
         
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(console.error);
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                // Detecta quando uma nova versão do SW está instalada
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'activated') {
+                            // Recarrega automaticamente para aplicar a atualização
+                            window.location.reload();
+                        }
+                    });
+                });
+            }).catch(console.error);
+
+            // Recebe mensagem do SW quando uma nova versão ativa
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data?.type === 'SW_UPDATED') {
+                    window.location.reload();
+                }
+            });
         }
     },
 
